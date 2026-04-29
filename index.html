@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX v2 — Upgraded Aesthetic System</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080808">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="APEX">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080808;
+  --s1: #101010;
+  --s2: #181818;
+  --s3: #202020;
+  --border: #1e1e1e;
+  --border2: #2a2a2a;
+  --lime: #c8ff00;
+  --orange: #ff4d00;
+  --blue: #4d8fff;
+  --gold: #ffcc44;
+  --text: #efefef;
+  --dim: #888;
+  --dimmer: #444;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+background:var(–bg);
+color:var(–text);
+font-family:‘DM Sans’,sans-serif;
+font-weight:300;
+min-height:100vh;
+overflow-x:hidden;
+}
+
+/* grain */
+body::after {
+content:’’;position:fixed;inset:0;
+background-image:url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 512 512’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.75’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘0.035’/%3E%3C/svg%3E”);
+pointer-events:none;z-index:9999;
+}
+
+/* ── HEADER ── */
+header {
+position:sticky;top:0;z-index:100;
+background:rgba(8,8,8,0.96);
+backdrop-filter:blur(16px);
+border-bottom:1px solid var(–border);
+padding:0 28px;
+height:56px;
+display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+
+.logo {
+display:flex;align-items:baseline;gap:10px;
+font-family:‘Bebas Neue’,sans-serif;
+font-size:24px;letter-spacing:4px;color:var(–lime);
+}
+.logo-version {
+font-family:‘DM Mono’,monospace;
+font-size:9px;letter-spacing:2px;color:var(–dimmer);
+font-weight:400;
+}
+
+.tabs {
+display:flex;gap:1px;
+background:var(–s1);
+border:1px solid var(–border);
+border-radius:5px;padding:3px;
+}
+.tab {
+padding:5px 14px;border:none;border-radius:3px;
+background:transparent;cursor:pointer;
+font-family:‘DM Mono’,monospace;font-size:10px;
+letter-spacing:1.5px;text-transform:uppercase;
+color:var(–dim);transition:all .18s;
+}
+.tab.active{background:var(–lime);color:#000;font-weight:500;}
+.tab:hover:not(.active){color:var(–text);}
+
+/* ── LAYOUT ── */
+main{max-width:1080px;margin:0 auto;padding:32px 20px 80px;}
+
+.page{display:none;}
+.page.active{display:block;animation:up .25s ease;}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STAT BAR ── */
+.stats {
+display:grid;grid-template-columns:repeat(5,1fr);
+gap:1px;background:var(–border);
+border:1px solid var(–border);border-radius:7px;overflow:hidden;
+margin-bottom:28px;
+}
+.stat{background:var(–s1);padding:16px 18px;}
+.stat-l{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:2px;color:var(–dimmer);text-transform:uppercase;margin-bottom:5px;}
+.stat-v{font-family:‘Bebas Neue’,sans-serif;font-size:28px;color:var(–lime);line-height:1;}
+.stat-v span{font-size:13px;color:var(–dim);}
+.stat-s{font-size:10px;color:var(–dim);margin-top:3px;}
+
+/* ── STREAK ── */
+.streak-wrap{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.streak-pill{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(–border2);border-radius:999px;background:var(–s1);font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(–dim)}
+.streak-pill strong{color:var(–lime)}
+
+/* ── TOAST ── */
+.toast{
+position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+background:#111;border:1px solid var(–border2);color:var(–text);
+padding:10px 14px;border-radius:999px;font-family:‘DM Mono’,monospace;
+font-size:10px;letter-spacing:.8px;z-index:10000;display:none;
+white-space:nowrap;
+}
+
+/* ── WEEK STRIP ── */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:28px;}
+.dc {
+background:var(–s1);border:1px solid var(–border);
+border-radius:6px;padding:12px 8px;cursor:pointer;
+text-align:center;transition:all .18s;position:relative;overflow:hidden;
+}
+.dc::after{content:’’;position:absolute;bottom:0;left:0;right:0;height:2px;background:var(–lime);transform:scaleX(0);transition:transform .2s;}
+.dc.active{border-color:var(–lime);background:rgba(200,255,0,0.04);}
+.dc.active::after,.dc:hover:not(.rest)::after{transform:scaleX(1);}
+.dc.rest{opacity:.35;cursor:default;}
+.dc-day{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:2px;color:var(–dim);margin-bottom:5px;text-transform:uppercase;}
+.dc-name{font-size:11px;font-weight:500;color:var(–text);line-height:1.3;}
+.dc-tag{display:inline-block;margin-top:5px;font-family:‘DM Mono’,monospace;font-size:8px;padding:2px 5px;border-radius:2px;background:rgba(200,255,0,0.08);color:var(–lime);}
+.dc-tag.o{background:rgba(255,77,0,0.08);color:var(–orange);}
+
+/* ── UPGRADE BADGE ── */
+.upgrade-strip{
+display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;
+}
+.ubadge{
+display:flex;align-items:center;gap:6px;
+padding:5px 10px;border-radius:4px;
+font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:1px;
+border:1px solid var(–border2);color:var(–dim);
+text-transform:uppercase;
+}
+.ubadge .dot{width:6px;height:6px;border-radius:50%;}
+.ubadge.new{border-color:rgba(200,255,0,0.2);color:var(–lime);}
+.ubadge.new .dot{background:var(–lime);}
+.ubadge.mod{border-color:rgba(255,77,0,0.2);color:var(–orange);}
+.ubadge.mod .dot{background:var(–orange);}
+
+/* ── WORKOUT ── */
+.w-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+.w-title{font-family:‘Bebas Neue’,sans-serif;font-size:52px;letter-spacing:2px;line-height:1;}
+.w-title em{color:var(–lime);font-style:normal;}
+.w-focus{font-size:12px;color:var(–dim);margin-top:4px;}
+.w-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.pill{padding:4px 10px;border:1px solid var(–border2);border-radius:20px;font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:1px;color:var(–dim);text-transform:uppercase;}
+.pill.hi{border-color:var(–lime);color:var(–lime);}
+.pill.or{border-color:var(–orange);color:var(–orange);}
+
+/* ── CALLOUT ── */
+.callout{border-left:2px solid var(–lime);background:rgba(200,255,0,0.04);padding:12px 16px;border-radius:0 5px 5px 0;margin-bottom:16px;font-size:12px;color:var(–dim);line-height:1.6;}
+.callout strong{color:var(–text);}
+.callout.or{border-color:var(–orange);background:rgba(255,77,0,0.04);}
+.callout.blue{border-color:var(–blue);background:rgba(77,143,255,0.04);}
+.callout.gold{border-color:var(–gold);background:rgba(255,204,68,0.04);}
+
+/* ── EXERCISE TABLE ── */
+.blk{margin-bottom:20px;}
+.blk-head{
+display:grid;grid-template-columns:36px 1fr 64px 96px 72px 90px;gap:10px;
+font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:2px;color:var(–dimmer);
+text-transform:uppercase;padding:7px 0;border-bottom:1px solid var(–border);margin-bottom:1px;
+}
+.ex-row{
+display:grid;grid-template-columns:36px 1fr 64px 96px 72px 90px;gap:10px;
+align-items:center;padding:11px 6px;border-bottom:1px solid rgba(30,30,30,.7);
+cursor:pointer;border-radius:4px;transition:background .15s;
+}
+.ex-row:hover{background:rgba(200,255,0,0.025);}
+.ex-row.new-ex{border-left:2px solid var(–lime);padding-left:10px;margin-left:-4px;}
+.ex-row.mod-ex{border-left:2px solid var(–orange);padding-left:10px;margin-left:-4px;}
+.ex-n{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–dimmer);}
+.ex-name{font-size:13px;font-weight:400;}
+.ex-sub{font-size:10px;color:var(–dim);margin-top:2px;}
+.ex-sets{font-family:‘Bebas Neue’,sans-serif;font-size:22px;color:var(–lime);line-height:1;}
+.ex-reps{font-family:‘DM Mono’,monospace;font-size:11px;color:var(–text);}
+.ex-rest{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–dim);}
+.ptag{display:inline-block;padding:2px 6px;border-radius:2px;font-family:‘DM Mono’,monospace;font-size:8px;letter-spacing:.5px;}
+.ptag.d{background:rgba(200,255,0,0.1);color:var(–lime);}
+.ptag.r{background:rgba(77,143,255,0.1);color:var(–blue);}
+.ptag.x{background:rgba(255,77,0,0.1);color:var(–orange);}
+
+/* cue */
+.inline-cue{
+border-left:2px solid var(–blue);background:rgba(77,143,255,0.05);
+padding:10px 14px;font-size:11px;color:var(–dim);line-height:1.6;
+border-radius:0 4px 4px 0;margin:0 0 0 36px;animation:up .2s ease;
+}
+.inline-cue strong{color:var(–text);}
+
+/* rest timer inside cue */
+.rest-timer{
+display:inline-flex;align-items:center;gap:6px;
+margin-top:8px;font-family:‘DM Mono’,monospace;font-size:10px;
+color:var(–lime);letter-spacing:1px;
+}
+.rest-timer-count{
+font-family:‘Bebas Neue’,sans-serif;font-size:22px;color:var(–lime);
+line-height:1;min-width:28px;
+}
+
+/* finisher box */
+.finisher{
+background:var(–s2);border:1px solid var(–border2);
+border-top:2px solid var(–orange);border-radius:0 0 6px 6px;
+padding:14px 18px;margin-top:-1px;
+}
+.finisher-label{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:2px;color:var(–orange);text-transform:uppercase;margin-bottom:6px;}
+.finisher-desc{font-size:13px;color:var(–text);}
+.finisher-sub{font-size:11px;color:var(–dim);margin-top:3px;}
+
+/* ── DIVIDER ── */
+.div{display:flex;align-items:center;gap:10px;margin:24px 0 16px;}
+.div-label{font-family:‘Bebas Neue’,sans-serif;font-size:11px;letter-spacing:4px;color:var(–dimmer);white-space:nowrap;}
+.div-line{flex:1;height:1px;background:var(–border);}
+
+/* ── PULLUP PAGE ── */
+.ladder{display:flex;flex-direction:column;gap:2px;margin-bottom:20px;}
+.rung{
+display:flex;align-items:center;gap:12px;padding:12px 16px;
+border:1px solid var(–border);border-radius:5px;background:var(–s1);
+cursor:pointer;transition:all .18s;
+}
+.rung.done{opacity:.35;}
+.rung.current{border-color:var(–lime);background:rgba(200,255,0,0.04);}
+.rung-lv{font-family:‘Bebas Neue’,sans-serif;font-size:24px;color:var(–lime);width:28px;flex-shrink:0;}
+.rung-d{flex:1;}
+.rung-t{font-size:13px;font-weight:400;}
+.rung-s{font-size:11px;color:var(–dim);margin-top:2px;}
+.rbadge{font-family:‘DM Mono’,monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:3px;text-transform:uppercase;}
+.rbadge.active-b{background:rgba(200,255,0,0.1);color:var(–lime);}
+.rbadge.locked{background:rgba(50,50,50,.3);color:var(–dimmer);}
+.rbadge.done-b{background:rgba(50,50,50,.2);color:var(–dimmer);}
+
+/* weekly pullup counter */
+.pu-counter{
+background:var(–s1);border:1px solid var(–border);border-radius:7px;
+padding:20px 24px;margin-bottom:20px;
+}
+.pu-counter-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pu-total{font-family:‘Bebas Neue’,sans-serif;font-size:52px;color:var(–lime);line-height:1;}
+.pu-total span{font-size:14px;color:var(–dim);}
+.pu-target{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–dim);}
+.pu-bar-track{height:6px;background:var(–s3);border-radius:3px;overflow:hidden;}
+.pu-bar-fill{height:100%;background:var(–lime);border-radius:3px;transition:width .4s ease;}
+.pu-add-row{display:flex;gap:6px;margin-top:12px;}
+.pu-input{
+flex:1;background:var(–bg);border:1px solid var(–border);border-radius:4px;
+padding:7px 10px;color:var(–text);font-family:‘DM Mono’,monospace;font-size:12px;outline:none;
+transition:border-color .2s;
+}
+.pu-input:focus{border-color:var(–lime);}
+.pu-btn{
+background:var(–lime);color:#000;border:none;border-radius:4px;
+padding:7px 14px;font-family:‘DM Mono’,monospace;font-size:10px;font-weight:500;
+cursor:pointer;letter-spacing:1px;transition:opacity .2s;
+}
+.pu-btn:hover{opacity:.85;}
+.pu-btn.reset{background:var(–s3);color:var(–dim);}
+
+/* ── TRACKER ── */
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.tc{background:var(–s1);border:1px solid var(–border);border-radius:7px;padding:18px;}
+.tc-label{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:2px;color:var(–dimmer);text-transform:uppercase;margin-bottom:10px;}
+.tc-row{display:flex;gap:6px;margin-bottom:8px;}
+.tc-input{
+flex:1;background:var(–bg);border:1px solid var(–border);border-radius:4px;
+padding:7px 10px;color:var(–text);font-family:‘DM Mono’,monospace;font-size:12px;
+outline:none;transition:border-color .2s;
+}
+.tc-input:focus{border-color:var(–lime);}
+.tc-btn{
+background:var(–lime);color:#000;border:none;border-radius:4px;
+padding:7px 12px;font-family:‘DM Mono’,monospace;font-size:9px;font-weight:500;
+cursor:pointer;letter-spacing:1px;transition:opacity .2s;
+}
+.tc-btn:hover{opacity:.85;}
+.log-list{max-height:140px;overflow-y:auto;}
+.log-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,30,30,.6);font-size:11px;}
+.log-row:last-child{border-bottom:none;}
+.log-d{font-family:‘DM Mono’,monospace;color:var(–dimmer);font-size:9px;}
+.log-v{font-family:‘DM Mono’,monospace;color:var(–lime);}
+.delta{font-size:9px;}
+.delta.up{color:#4dff91;}
+.delta.dn{color:var(–orange);}
+.pb-tag{font-family:‘DM Mono’,monospace;font-size:8px;padding:1px 5px;border-radius:2px;background:rgba(255,204,68,.12);color:var(–gold);margin-left:4px;}
+.empty{text-align:center;padding:20px;font-family:‘DM Mono’,monospace;font-size:10px;color:var(–dimmer);}
+
+/* decision engine */
+.decision-engine{
+background:var(–s1);border:1px solid var(–border2);border-radius:7px;
+padding:20px;margin-bottom:20px;
+}
+.de-title{font-family:‘Bebas Neue’,sans-serif;font-size:18px;letter-spacing:3px;margin-bottom:14px;color:var(–text);}
+.de-grid{display:flex;flex-direction:column;gap:8px;}
+.de-rule{
+display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+border-radius:5px;border:1px solid var(–border);font-size:12px;
+line-height:1.5;color:var(–dim);
+}
+.de-rule strong{color:var(–text);}
+.de-arrow{color:var(–lime);font-family:‘DM Mono’,monospace;flex-shrink:0;margin-top:1px;}
+
+/* ratio */
+.ratio-display{
+background:var(–s1);border:1px solid var(–border);border-radius:7px;
+padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:24px;
+}
+.ratio-num{font-family:‘Bebas Neue’,sans-serif;font-size:64px;line-height:1;}
+.ratio-sub{font-size:11px;color:var(–dim);margin-top:4px;}
+
+/* progression page */
+.prog-card{background:var(–s1);border:1px solid var(–border);border-radius:7px;padding:20px;margin-bottom:14px;}
+.prog-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.prog-icon{width:34px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.prog-title{font-family:‘Bebas Neue’,sans-serif;font-size:18px;letter-spacing:2px;}
+.prog-sub{font-size:11px;color:var(–dim);}
+.rules{list-style:none;}
+.rule{padding:7px 0;border-bottom:1px solid rgba(30,30,30,.6);font-size:12px;color:var(–dim);display:flex;gap:8px;align-items:flex-start;line-height:1.5;}
+.rule:last-child{border-bottom:none;}
+.rule::before{content:‘→’;color:var(–lime);font-family:‘DM Mono’,monospace;flex-shrink:0;}
+.rule strong{color:var(–text);}
+
+/* install banner */
+.install-banner{
+display:none;
+background:var(–s1);border:1px solid rgba(200,255,0,0.2);border-radius:7px;
+padding:14px 18px;margin-bottom:20px;
+align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.install-banner.show{display:flex;}
+.install-text{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–dim);letter-spacing:.5px;}
+.install-text strong{color:var(–lime);}
+.install-btn{
+background:var(–lime);color:#000;border:none;border-radius:4px;
+padding:7px 14px;font-family:‘DM Mono’,monospace;font-size:10px;font-weight:500;
+cursor:pointer;letter-spacing:1px;white-space:nowrap;
+}
+.install-dismiss{
+background:none;border:none;color:var(–dimmer);cursor:pointer;
+font-family:‘DM Mono’,monospace;font-size:10px;padding:4px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(–s1);}
+::-webkit-scrollbar-thumb{background:var(–border2);border-radius:2px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+.stats{grid-template-columns:repeat(3,1fr);}
+.week{grid-template-columns:repeat(4,1fr);}
+.blk-head,.ex-row{grid-template-columns:28px 1fr 48px 80px;}
+.blk-head>*:nth-child(5),.blk-head>*:nth-child(6),
+.ex-row>*:nth-child(5),.ex-row>*:nth-child(6){display:none;}
+.tgrid{grid-template-columns:1fr;}
+.ratio-display{flex-direction:column;gap:8px;}
+header{padding:0 14px;}
+.logo-version{display:none;}
+}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="logo">APEX <span class="logo-version">v2.0 — UPGRADED</span></div>
+  <div class="tabs">
+    <button class="tab active" onclick="nav('program',this)">Program</button>
+    <button class="tab" onclick="nav('pullups',this)">Pull-ups</button>
+    <button class="tab" onclick="nav('progression',this)">Progression</button>
+    <button class="tab" onclick="nav('tracker',this)">Tracker</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════════════ PROGRAM ══════════════════════════ -->
+
+<div id="page-program" class="page active">
+
+  <!-- Install banner -->
+
+  <div class="install-banner" id="install-banner">
+    <div class="install-text"><strong>Install APEX</strong> — Add to home screen for notifications & offline access</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="install-btn" id="install-btn">INSTALL</button>
+      <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-l">Weight</div>
+      <div class="stat-v">75.8<span>kg</span></div>
+      <div class="stat-s">+3–4kg since start</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">Waist</div>
+      <div class="stat-v">31.8<span>in</span></div>
+      <div class="stat-s">↓ from 33+in</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">S/W Ratio</div>
+      <div class="stat-v">1.46<span>×</span></div>
+      <div class="stat-s">Target: 1.60+</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">Pull-up Max</div>
+      <div class="stat-v">10<span>+</span></div>
+      <div class="stat-s">Target: 20 strict</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">Version</div>
+      <div class="stat-v" style="color:var(--orange)">v2<span>.0</span></div>
+      <div class="stat-s">6 upgrades applied</div>
+    </div>
+  </div>
+
+  <!-- Streak pills -->
+
+  <div class="streak-wrap">
+    <div class="streak-pill">🔥 Streak <strong id="streak-count">0</strong> days</div>
+    <div class="streak-pill">🏆 Best <strong id="streak-best">0</strong> days</div>
+  </div>
+
+  <div class="upgrade-strip">
+    <div class="ubadge new"><div class="dot"></div>Hex/Squeeze Press added</div>
+    <div class="ubadge new"><div class="dot"></div>Daily lateral delt protocol</div>
+    <div class="ubadge new"><div class="dot"></div>Weekly pull-up volume target</div>
+    <div class="ubadge new"><div class="dot"></div>Top set + backoff structure</div>
+    <div class="ubadge new"><div class="dot"></div>Intensity finishers per session</div>
+    <div class="ubadge mod"><div class="dot"></div>Decision-based execution engine</div>
+  </div>
+
+  <div class="week">
+    <div class="dc active" onclick="showDay('mon',this)">
+      <div class="dc-day">MON</div>
+      <div class="dc-name">Push A</div>
+      <div class="dc-tag">CHEST·SHLD·TRI</div>
+    </div>
+    <div class="dc" onclick="showDay('tue',this)">
+      <div class="dc-day">TUE</div>
+      <div class="dc-name">Pull A</div>
+      <div class="dc-tag">WIDTH·BICEPS</div>
+    </div>
+    <div class="dc" onclick="showDay('wed',this)">
+      <div class="dc-day">WED</div>
+      <div class="dc-name">Legs+Core</div>
+      <div class="dc-tag o">LEGS·ABS</div>
+    </div>
+    <div class="dc" onclick="showDay('thu',this)">
+      <div class="dc-day">THU</div>
+      <div class="dc-name">Push B</div>
+      <div class="dc-tag">SHLD·CHEST·TRI</div>
+    </div>
+    <div class="dc" onclick="showDay('fri',this)">
+      <div class="dc-day">FRI</div>
+      <div class="dc-name">Pull B</div>
+      <div class="dc-tag">THICK·REAR·BIC</div>
+    </div>
+    <div class="dc" onclick="showDay('sat',this)">
+      <div class="dc-day">SAT</div>
+      <div class="dc-name">Arms+Abs</div>
+      <div class="dc-tag o">ARMS·CORE</div>
+    </div>
+    <div class="dc rest">
+      <div class="dc-day">SUN</div>
+      <div class="dc-name" style="color:var(--dimmer)">Rest</div>
+      <div class="dc-tag" style="background:rgba(50,50,50,.2);color:var(--dimmer)">GROW</div>
+    </div>
+  </div>
+
+  <div id="workout-area"></div>
+
+</div>
+
+<!-- ══════════════════════════ PULL-UPS ══════════════════════════ -->
+
+<div id="page-pullups" class="page">
+
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;margin-bottom:6px">PULL-UP <em style="color:var(--lime);font-style:normal">SYSTEM</em></div>
+  <div style="font-size:12px;color:var(--dim);max-width:580px;margin-bottom:24px;line-height:1.6">Every pull day starts with pull-ups — no exceptions. The weekly volume counter below is your primary progression metric. Hit 60–100 reps per week minimum. Once you hit 15 clean reps, transition to weighted immediately.</div>
+
+  <div class="pu-counter">
+    <div class="pu-counter-top">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dimmer);text-transform:uppercase;margin-bottom:4px">Weekly Pull-up Volume</div>
+        <div class="pu-total" id="pu-total">0 <span>/ 80 reps</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="pu-target" id="pu-status">0% of weekly target</div>
+        <div style="font-size:10px;color:var(--dimmer);margin-top:4px">Min: 60 | Target: 80 | Elite: 100</div>
+      </div>
+    </div>
+    <div class="pu-bar-track"><div class="pu-bar-fill" id="pu-bar" style="width:0%"></div></div>
+    <div class="pu-add-row">
+      <input class="pu-input" id="pu-add-input" type="number" placeholder="Add reps this session (e.g. 24)">
+      <button class="pu-btn" onclick="addPullupReps()">+ ADD</button>
+      <button class="pu-btn reset" onclick="resetPullupWeek()">RESET WEEK</button>
+    </div>
+  </div>
+
+  <div class="callout gold">
+    <strong>NEW — Top Set + Backoff Structure (Pull A, exercise 01):</strong> Do 1 top set at max−1 reps. Rest 2 min. Then 3 backoff sets at 70% of max reps. This builds both neural strength AND volume capacity simultaneously — the two things that push you to 15+ reps fastest.
+  </div>
+
+  <div class="div"><div class="div-line"></div><div class="div-label">MASTERY LADDER</div><div class="div-line"></div></div>
+
+  <div class="ladder">
+    <div class="rung done"><div class="rung-lv">1</div><div class="rung-d"><div class="rung-t">Foundation — 5 clean reps</div><div class="rung-s">Scapular retraction, full dead hang start</div></div><div class="rbadge done-b">✓ DONE</div></div>
+    <div class="rung done"><div class="rung-lv">2</div><div class="rung-d"><div class="rung-t">Volume base — 10 clean reps</div><div class="rung-s">Controlled descent, no kipping, chest to bar</div></div><div class="rbadge done-b">✓ DONE</div></div>
+    <div class="rung current"><div class="rung-lv">3</div><div class="rung-d"><div class="rung-t">GTG Phase — 15 reps target</div><div class="rung-s">4–6 sub-max sets spread through day. 40–60% of max. Never fail a rep. Neurological adaptation.</div></div><div class="rbadge active-b">← YOU ARE HERE</div></div>
+    <div class="rung"><div class="rung-lv">4</div><div class="rung-d"><div class="rung-t">Weighted — +5kg, 5 reps</div><div class="rung-s">Trigger: hit 15 clean reps → start weighted immediately. Use loaded backpack.</div></div><div class="rbadge locked">LOCKED</div></div>
+    <div class="rung"><div class="rung-lv">5</div><div class="rung-d"><div class="rung-t">L-Sit Pull-ups — 5 reps</div><div class="rung-s">Legs parallel throughout. Core + hip flexors + lats simultaneously.</div></div><div class="rbadge locked">LOCKED</div></div>
+    <div class="rung"><div class="rung-lv">6</div><div class="rung-d"><div class="rung-t">Weighted — +10kg, 8 reps</div><div class="rung-s">Serious lat thickness. V-taper fully established.</div></div><div class="rbadge locked">LOCKED</div></div>
+    <div class="rung"><div class="rung-lv">7</div><div class="rung-d"><div class="rung-t">20 Strict Reps — Elite</div><div class="rung-s">Top 1% of all people who train. Full back development achieved.</div></div><div class="rbadge locked">LOCKED</div></div>
+  </div>
+
+  <div class="div"><div class="div-line"></div><div class="div-label">GRIP ROTATION — WEEKLY</div><div class="div-line"></div></div>
+  <div class="callout">
+    <strong>Rotate grips each Pull session to prevent joint fatigue and ensure full development:</strong> Pull A → Wide pronated | Pull B → Neutral grip | Next Pull A → Chin-up supinated | Repeat. Each grip hits slightly different lat fibres and keeps joints healthy long-term.
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ PROGRESSION ══════════════════════════ -->
+
+<div id="page-progression" class="page">
+
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;margin-bottom:6px">PROGRESSION <em style="color:var(--lime);font-style:normal">ENGINE</em></div>
+  <div style="font-size:12px;color:var(--dim);max-width:580px;margin-bottom:24px;line-height:1.6">Three methods. Every exercise assigned to one. No ambiguity. If you know the method, you know what to do next session without thinking.</div>
+
+  <div class="prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:rgba(200,255,0,.08)">📈</div>
+      <div><div class="prog-title">DOUBLE PROGRESSION</div><div class="prog-sub">All dumbbell exercises</div></div>
+    </div>
+    <div class="callout" style="margin-bottom:10px">Stay same weight until you hit the <strong>top of the rep range on ALL sets</strong>. Then add weight. Simple. Relentless.</div>
+    <ul class="rules">
+      <div class="rule">Session 1: DB Press 20kg → <strong>8/8/7</strong> → stay</div>
+      <div class="rule">Session 2: DB Press 20kg → <strong>10/9/9</strong> → stay</div>
+      <div class="rule">Session 3: DB Press 20kg → <strong>12/12/11</strong> → <strong style="color:var(--lime)">bump to 22.5kg</strong></div>
+      <div class="rule">Session 4: DB Press 22.5kg → <strong>8/8/7</strong> → cycle repeats</div>
+    </ul>
+  </div>
+
+  <div class="prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:rgba(77,143,255,.08)">🎯</div>
+      <div><div class="prog-title">REP PR PROGRESSION</div><div class="prog-sub">All bodyweight: pull-ups, push-ups, dips</div></div>
+    </div>
+    <div class="callout blue" style="margin-bottom:10px">Track <strong>total reps per session</strong>. Beat it by at least 1 rep next session. Distribution across sets doesn't matter.</div>
+    <ul class="rules">
+      <div class="rule">Week 1: Pull-ups <strong>8/7/6 = 21 total</strong></div>
+      <div class="rule">Week 2: Pull-ups <strong>9/7/6 = 22 total ✓</strong></div>
+      <div class="rule">Week 3: Pull-ups <strong>9/8/7 = 24 total ✓</strong></div>
+      <div class="rule">Top-end achieved all sets → <strong style="color:var(--lime)">add weight or harder variation</strong></div>
+    </ul>
+  </div>
+
+  <div class="prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:rgba(255,77,0,.08)">⚡</div>
+      <div><div class="prog-title">DENSITY PROGRESSION</div><div class="prog-sub">Abs, isolation finishers</div></div>
+    </div>
+    <div class="callout or" style="margin-bottom:10px">Same reps, shorter rest. Or more reps, same time. Progress until rest hits 45s → upgrade to harder variation.</div>
+    <ul class="rules">
+      <div class="rule">Week 1: Hanging knee raises 3×15, 90s rest</div>
+      <div class="rule">Week 2: Same, 75s rest ✓</div>
+      <div class="rule">Week 3: Same, 60s rest ✓</div>
+      <div class="rule">Week 4: <strong style="color:var(--lime)">Upgrade to hanging leg raises</strong></div>
+    </ul>
+  </div>
+
+  <div class="div"><div class="div-line"></div><div class="div-label">RULES THAT PREVENT STALLING</div><div class="div-line"></div></div>
+
+  <div class="prog-card">
+    <ul class="rules">
+      <div class="rule"><strong>Tempo:</strong> 2–3 second eccentric on ALL hypertrophy lifts. Set a timer. No guessing.</div>
+      <div class="rule"><strong>Stall:</strong> No progress 3 sessions in a row → drop weight 10%, reset, rebuild. Never grind the same weight forever.</div>
+      <div class="rule"><strong>Deload:</strong> Every 6th week — drop weights 40%, 2 sets only. Non-negotiable for joint health and continued progress.</div>
+      <div class="rule"><strong>Sleep:</strong> 7–9 hrs. Growth hormone peaks near 1AM. No hack replaces this.</div>
+      <div class="rule"><strong>Protein:</strong> 1.8–2.2g/kg = 137–167g/day. Non-negotiable for hypertrophy at this bodyweight.</div>
+      <div class="rule"><strong>Surplus:</strong> ~200 kcal/day above maintenance. Track for 2 weeks to calibrate your number.</div>
+      <div class="rule"><strong>Lateral delts — daily mini-sets:</strong> On all non-push days, do 2×15–20 light lateral raises. 4–5x/week frequency is what makes shoulders visibly wider in 3–5 weeks.</div>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ TRACKER ══════════════════════════ -->
+
+<div id="page-tracker" class="page">
+
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;margin-bottom:6px">EXECUTION <em style="color:var(--lime);font-style:normal">TRACKER</em></div>
+  <div style="font-size:12px;color:var(--dim);max-width:580px;margin-bottom:24px;line-height:1.6">Log weekly. The decision engine below tells you exactly what to adjust — no guesswork.</div>
+
+  <div class="decision-engine">
+    <div class="de-title">AUTO-DECISION ENGINE</div>
+    <div class="de-grid">
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Weight ↑ + waist ↑ &gt;0.3in/week</strong> → reduce calories by 150 kcal/day. You're gaining too fast.</div></div>
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Strength stagnant 2+ weeks</strong> → apply stall rule: drop 10%, rebuild. Do not keep grinding.</div></div>
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Pull-up weekly total &lt; 60</strong> → increase GTG frequency by 1 session/day next week.</div></div>
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Pull-up max hits 15</strong> → transition to weighted pull-ups immediately. Don't wait.</div></div>
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Weight stagnant 2+ weeks</strong> → add 100 kcal/day. You're under-eating for growth.</div></div>
+      <div class="de-rule"><span class="de-arrow">IF</span><div><strong>Lateral raise weight not increasing for 3 weeks</strong> → switch to 2-second pause at top. Reset double progression from that point.</div></div>
+    </div>
+  </div>
+
+  <div class="ratio-display" id="ratio-box">
+    <div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dimmer);text-transform:uppercase;margin-bottom:4px">Shoulder / Waist Ratio</div>
+      <div class="ratio-num" id="ratio-num" style="color:var(--dim)">—</div>
+      <div class="ratio-sub" id="ratio-sub">Log shoulder + waist measurements to calculate</div>
+    </div>
+    <div style="flex:1">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dimmer);text-transform:uppercase;margin-bottom:8px">Progress to Greek Ideal (1.60×)</div>
+      <div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden;margin-bottom:6px">
+        <div id="ratio-bar" style="height:100%;background:var(--lime);border-radius:3px;width:0%;transition:width .4s"></div>
+      </div>
+      <div id="ratio-gap" style="font-size:11px;color:var(--dim)"></div>
+    </div>
+  </div>
+
+  <div class="tgrid">
+    <div class="tc">
+      <div class="tc-label">Body Weight (kg)</div>
+      <div class="tc-row"><input class="tc-input" id="i-weight" type="number" step="0.1" placeholder="75.8"><button class="tc-btn" onclick="log('weight')">LOG</button></div>
+      <div class="log-list" id="l-weight"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Waist (inches)</div>
+      <div class="tc-row"><input class="tc-input" id="i-waist" type="number" step="0.1" placeholder="31.8"><button class="tc-btn" onclick="log('waist')">LOG</button></div>
+      <div class="log-list" id="l-waist"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Incline DB Press (kg per DB)</div>
+      <div class="tc-row"><input class="tc-input" id="i-press" type="number" step="1" placeholder="20"><button class="tc-btn" onclick="log('press')">LOG</button></div>
+      <div class="log-list" id="l-press"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Lateral Raise Weight (kg)</div>
+      <div class="tc-row"><input class="tc-input" id="i-lateral" type="number" step="0.5" placeholder="8"><button class="tc-btn" onclick="log('lateral')">LOG</button></div>
+      <div class="log-list" id="l-lateral"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Pull-up Max (reps)</div>
+      <div class="tc-row"><input class="tc-input" id="i-pullup" type="number" step="1" placeholder="10"><button class="tc-btn" onclick="log('pullup')">LOG</button></div>
+      <div class="log-list" id="l-pullup"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Shoulder Width (inches)</div>
+      <div class="tc-row"><input class="tc-input" id="i-shoulder" type="number" step="0.1" placeholder="46.4"><button class="tc-btn" onclick="log('shoulder')">LOG</button></div>
+      <div class="log-list" id="l-shoulder"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Walk (minutes)</div>
+      <div class="tc-row"><input class="tc-input" id="i-walk" type="number"><button class="tc-btn" onclick="log('walk')">LOG</button></div>
+      <div class="log-list" id="l-walk"></div>
+    </div>
+    <div class="tc">
+      <div class="tc-label">Water (glasses)</div>
+      <div class="tc-row"><input class="tc-input" id="i-water" type="number"><button class="tc-btn" onclick="log('water')">LOG</button></div>
+      <div class="log-list" id="l-water"></div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- Toast -->
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ══════════════════════════ WORKOUT DATA ══════════════════════════
+
+const DAYS = {
+  mon:{
+    title:'PUSH',sub:'A',focus:'Chest · Shoulders · Triceps',
+    time:'40 min',sets:'17',note:'Lead with incline press while fresh. NEW: lateral raises moved before overhead press once/week to prioritize shoulder width.',
+    upgrades:['Lateral raises before overhead press 1×/week','Push-up burnout finisher added'],
+    blocks:[
+      {label:'PRIMARY — CHEST',exs:[
+        {n:'01',name:'Incline DB Press',sub:'30–45°, 3-sec eccentric',sets:'4',reps:'8–12',rest:'90s',prog:'d',cue:'Retract scapula before unracking. 3-second controlled descent. Full stretch at bottom — that loaded stretch is where chest grows. Squeeze hard at top.',isNew:false,isMod:false},
+        {n:'02',name:'DB Squeeze Press',sub:'Crush DBs together entire set — NEW',sets:'3',reps:'10–12',rest:'75s',prog:'d',cue:'NEW EXERCISE: Adduction tension missing from v1. Lie flat, press two DBs together with maximum force throughout the entire rep. This is the missing chest stimulus — horizontal adduction under load. Fixes the chest ceiling.',isNew:true,isMod:false},
+      ]},
+      {label:'SHOULDERS — LATERAL DELT PRIORITY',exs:[
+        {n:'03',name:'DB Lateral Raises',sub:'Slow — lead with elbows, 2-sec hold at top',sets:'4',reps:'12–15',rest:'60s',prog:'d',cue:'UPGRADED: Now done before overhead press once per week. Lead with elbows not wrists. Stop at shoulder height. 2-second hold at top. This is your #1 width builder — treat it as a primary.',isNew:false,isMod:true},
+        {n:'04',name:'DB Overhead Press',sub:'Seated, slight forward lean',sets:'3',reps:'8–12',rest:'90s',prog:'d',cue:'Press in slight arc. Lock out at top. Slight forward lean engages front delt and upper chest simultaneously.'},
+      ]},
+      {label:'TRICEPS',exs:[
+        {n:'05',name:'Diamond Push-ups',sub:'Hands form diamond, elbows back',sets:'3',reps:'12–20',rest:'60s',prog:'r',cue:'Elbows flare back not out. Squeeze hard at top. Tricep isolation — full lockout matters.'},
+        {n:'06',name:'DB Tricep Kickback',sub:'Both arms, hinged forward',sets:'3',reps:'12–15',rest:'45s',prog:'d',cue:'Upper arm parallel to floor and fixed. Extension only. 1-second squeeze at lockout.'},
+      ]},
+      {finisher:'Push-up Burnout — 1 set to absolute failure. Drop to knees if needed. This adds the stress signal your body cannot ignore. Log reps each week and beat it.'}
+    ]
+  },
+  tue:{
+    title:'PULL',sub:'A',focus:'Back Width · Biceps',
+    time:'42 min',sets:'17',note:'NEW structure: 1 top set (max−1) then 3 backoff sets at 70% of max. Builds neural strength AND volume simultaneously.',
+    upgrades:['Top set + backoff structure for pull-ups','Weekly volume counter active'],
+    blocks:[
+      {label:'PULL-UPS — UPGRADED STRUCTURE',exs:[
+        {n:'01',name:'Wide Grip Pull-up — TOP SET',sub:'1 set at max−1 reps. Full dead hang, chest to bar.',sets:'1',reps:'Max−1',rest:'2min',prog:'r',cue:'NEW: This is your strength set. Leave exactly 1 rep in tank. Record this number. This builds the neural component — the strength ceiling that limits your max reps.',isNew:false,isMod:true},
+        {n:'01b',name:'Wide Grip Pull-up — BACKOFF SETS',sub:'3 sets at 70% of your max reps',sets:'3',reps:'70% max',rest:'90s',prog:'r',cue:'NEW: If your max is 10, do sets of 7. These build volume capacity. Combine top + backoff total = your weekly progression number. Beat it next Pull A.',isNew:false,isMod:true},
+        {n:'02',name:'Chin-up (supinated)',sub:'Shoulder width, full bicep curl motion',sets:'3',reps:'8–12',rest:'90s',prog:'r',cue:'Curl yourself up, not just pull. Squeeze bicep hard at top. Supinated grip = more bicep recruitment.'},
+      ]},
+      {label:'DUMBBELL BACK',exs:[
+        {n:'03',name:'DB Bent-Over Row',sub:'Hinge 45°, row to hip',sets:'4',reps:'10–12',rest:'75s',prog:'d',cue:'Drive elbow BACK not up. Think: reach your elbow to the wall behind you. 1-second hold at top.'},
+        {n:'04',name:'DB Renegade Row',sub:'Push-up position, no hip rotation',sets:'3',reps:'8/side',rest:'60s',prog:'d',cue:'Anti-rotation = core training bonus. Hips stay square. Row from lat, not arm.'},
+      ]},
+      {label:'BICEPS',exs:[
+        {n:'05',name:'DB Hammer Curl',sub:'Neutral grip, alternating',sets:'3',reps:'10–12',rest:'60s',prog:'d',cue:'Brachialis = arm thickness from the side view. No swinging. Controlled 3-sec negative.'},
+        {n:'06',name:'DB Supinating Curl',sub:'Rotate palm out at top',sets:'2',reps:'10–12',rest:'45s',prog:'d',cue:'Supination at top recruits short head. Peak contraction squeeze holds 1 second.'},
+      ]},
+      {finisher:'Dead hang to partial pull-ups: hang for 20s, then do as many partial-range pull-ups as possible from bottom half. Grip, forearm, and lat endurance finisher.'}
+    ]
+  },
+  wed:{
+    title:'LEGS',sub:'+ CORE',focus:'Quads · Hamstrings · Abs',
+    time:'42 min',sets:'16',note:'Core work through full range via the pull-up bar. Abs are visible — now build them thick.',
+    upgrades:['20-rep squat finisher added'],
+    blocks:[
+      {label:'LEGS',exs:[
+        {n:'01',name:'DB Goblet Squat',sub:'Hold DB vertical at chest, deep squat',sets:'4',reps:'12–15',rest:'90s',prog:'d',cue:'Elbows inside knees at bottom. Chest up. Deep squat if mobility allows. Primary quad builder.'},
+        {n:'02',name:'DB Romanian Deadlift',sub:'Hip hinge, soft knee, feel the stretch',sets:'4',reps:'10–12',rest:'90s',prog:'d',cue:'The stretch at bottom is the working position — do not rush through it. Squeeze glutes at lockout.'},
+        {n:'03',name:'DB Reverse Lunge',sub:'Step back, not forward',sets:'3',reps:'10/side',rest:'60s',prog:'d',cue:'Easier on knees than forward lunge. More glute activation. Control the descent — 2 seconds down.'},
+      ]},
+      {label:'CORE — PULL-UP BAR + WEIGHTED',exs:[
+        {n:'04',name:'Hanging Knee Raises',sub:'Dead hang on pull-up bar',sets:'3',reps:'12–15',rest:'60s',prog:'x',cue:'Posterior pelvic tilt at top to fully contract lower abs. No swinging. Progress to leg raises when easy.'},
+        {n:'05',name:'DB Weighted Crunch',sub:'Hold plate on chest, short ROM',sets:'3',reps:'15–20',rest:'45s',prog:'d',cue:'Only upper back off floor. Exhale forcefully at top. No neck pull. Short range is correct.'},
+        {n:'06',name:'Hollow Body Hold',sub:'Arms overhead, lower back flat',sets:'2',reps:'20–30s',rest:'60s',prog:'x',cue:'Lower back MUST be flat on floor. Arms overhead, legs extended low. Beat last week by 5 seconds.'},
+      ]},
+      {finisher:'20-rep DB Goblet Squat — strip weight by 30%, do 20 continuous reps. No rest, no pausing. Metabolic stress signal that forces adaptation. Legs will know.'}
+    ]
+  },
+  thu:{
+    title:'PUSH',sub:'B',focus:'Shoulders · Upper Chest · Triceps',
+    time:'38 min',sets:'15',note:'Shoulder-dominant day. NEW: lateral delt 21s upgraded with pause. Hex press replaces nothing — it adds the missing adduction vector.',
+    upgrades:['Lateral raise 21s now includes 2-sec pause','Daily lateral delt reminder'],
+    blocks:[
+      {label:'SHOULDER DOMINANT',exs:[
+        {n:'01',name:'DB Arnold Press',sub:'Rotate palms-in to palms-out each rep',sets:'4',reps:'10–12',rest:'90s',prog:'d',cue:'Start at chin, rotate as you press overhead. Hits all 3 delt heads in one movement. No lower-back arch.'},
+        {n:'02',name:'DB Lateral Raise — 21s',sub:'7 full / 7 top-half / 7 bottom-half + 2-sec pause — UPGRADED',sets:'3',reps:'21',rest:'75s',prog:'x',cue:'UPGRADED: Add 2-second pause at shoulder height on all 7 full reps. Constant tension throughout. Lateral delts have no choice but to grow at this frequency and intensity.',isNew:false,isMod:true},
+      ]},
+      {label:'UPPER CHEST + CHEST ADDUCTION',exs:[
+        {n:'03',name:'Elevated Push-up',sub:'Feet on chair, hands on floor',sets:'3',reps:'12–20',rest:'60s',prog:'r',cue:'Decline angle hits upper chest hard. Protract scapula at top — serratus activation makes chest look boxier.'},
+        {n:'04',name:'DB Floor Press',sub:'Neutral grip, elbows at 45°',sets:'3',reps:'10–12',rest:'75s',prog:'d',cue:'Floor limits range — forces heavier weight safely. Primary tricep lockout strength builder. Keep elbows at 45° not 90°.'},
+      ]},
+      {label:'TRICEPS',exs:[
+        {n:'05',name:'DB Overhead Tricep Extension',sub:'One DB, both hands, lower behind head',sets:'3',reps:'12–15',rest:'60s',prog:'d',cue:'Long head = bulk of arm size. Only stretched properly overhead. Lower fully behind head — do not cut range short.'},
+      ]},
+      {finisher:'Lateral raise burnout: grab 50% of your working weight. Do lateral raises to failure. These last reps at lighter weight recruit the stubborn fibres heavy sets miss.'}
+    ]
+  },
+  fri:{
+    title:'PULL',sub:'B',focus:'Back Thickness · Rear Delts · Biceps',
+    time:'40 min',sets:'16',note:'Neutral grip pull-up day. Rear delt focus — this is what makes you look wide from the side and back.',
+    upgrades:['Grip rotation: neutral this week'],
+    blocks:[
+      {label:'PULL-UPS — NEUTRAL GRIP',exs:[
+        {n:'01',name:'Neutral Grip Pull-up — TOP SET',sub:'Middle grip on 3-grip bar, 1 set max−1',sets:'1',reps:'Max−1',rest:'2min',prog:'r',cue:'Same top-set structure as Pull A. Record and track. Neutral grip is more shoulder-friendly — good for volume accumulation.'},
+        {n:'01b',name:'Neutral Grip Pull-up — BACKOFFS',sub:'3 sets at 70% max reps',sets:'3',reps:'70% max',rest:'90s',prog:'r',cue:'Add today\'s reps to weekly counter. You should be nearing 60+ reps for the week after two pull sessions.'},
+        {n:'02',name:'Dead Hang',sub:'Passive grip, full decompression',sets:'2',reps:'30–45s',rest:'60s',prog:'x',cue:'Relax everything except grip. Spinal decompression. Shoulder health. Do this every pull day.'},
+      ]},
+      {label:'UPPER BACK + REAR DELTS',exs:[
+        {n:'03',name:'DB High Row',sub:'Elbows flared to ear height',sets:'4',reps:'12–15',rest:'60s',prog:'d',cue:'Pull to ear height with elbows ABOVE hands. External rotation at top. Rear delt + rotator cuff — the 3D shoulder look comes from here.'},
+        {n:'04',name:'DB Chest-Supported Row',sub:'Chest on incline chair, pure upper back',sets:'3',reps:'12–15',rest:'75s',prog:'d',cue:'Takes lower back out entirely. Pure upper back. Squeeze rhomboids at top — 1-second hold.'},
+      ]},
+      {label:'BICEPS',exs:[
+        {n:'05',name:'DB Concentration Curl',sub:'Elbow braced on inner thigh',sets:'3',reps:'10–12',rest:'60s',prog:'d',cue:'Peak contraction exercise. Fully supinate at top, squeeze. Mind-muscle here is not optional.'},
+        {n:'06',name:'DB Incline Curl',sub:'Arms hanging back, seated on inclined surface',sets:'2',reps:'10–12',rest:'45s',prog:'d',cue:'Hanging arm position stretches long head = bicep peak. Let it hang fully before curling.'},
+      ]},
+      {finisher:'Dead hang + partial pull-ups: 20-second passive hang immediately into partial bottom-range pull-ups to failure. Grip strength and lat endurance in one.'}
+    ]
+  },
+  sat:{
+    title:'ARMS',sub:'+ ABS',focus:'Biceps · Triceps · Core',
+    time:'36 min',sets:'14',note:'Superset pairs — no rest between A and B. Full arm pump, half the time. Abs via pull-up bar.',
+    upgrades:['30-rep curl burnout finisher added'],
+    blocks:[
+      {label:'SUPERSET PAIRS — NO REST BETWEEN A+B',exs:[
+        {n:'1A',name:'DB Curl (both arms)',sub:'Full supination at top',sets:'4',reps:'10–12',rest:'—',prog:'d',cue:'Immediately superset into 1B. Full supination — rotate pinky up at top. Squeeze.'},
+        {n:'1B',name:'Close-Grip Push-up',sub:'Drop to floor immediately after curls',sets:'4',reps:'12–15',rest:'90s',prog:'r',cue:'Curl → floor → push-up. Bicep/tricep superset = max pump, minimal time. Full lockout at top.'},
+        {n:'2A',name:'DB Hammer Curl',sub:'Neutral grip, simultaneous',sets:'3',reps:'10–12',rest:'—',prog:'d',cue:'Brachialis thickness. No swinging. Immediately into 2B.'},
+        {n:'2B',name:'DB Tricep Kickback',sub:'Both arms, hinged forward',sets:'3',reps:'12–15',rest:'75s',prog:'d',cue:'Full lockout. 1-second squeeze. Upper arm does not move.'},
+      ]},
+      {label:'ABS — PULL-UP BAR + FLOOR',exs:[
+        {n:'03',name:'Hanging Leg Raise',sub:'On pull-up bar, legs together',sets:'3',reps:'10–15',rest:'—',prog:'x',cue:'PPT at top for lower abs. Controlled — no swinging. This is the step up from knee raises.'},
+        {n:'04',name:'DB Russian Twist',sub:'Seated, feet elevated, weight in hands',sets:'3',reps:'20 total',rest:'—',prog:'d',cue:'Feet off floor = oblique isolation. Control the rotation. Obliques frame the abs from the sides.'},
+        {n:'05',name:'Hollow Body Hold',sub:'Arms overhead, lower back flat',sets:'2',reps:'25–35s',rest:'60s',prog:'x',cue:'Beat last week by 5 seconds. This is the foundational move — every elite physique athlete does this.'},
+      ]},
+      {finisher:'30-rep curl burnout: grab 40% working weight, do 30 continuous reps — 10 bottom half / 10 top half / 10 full range. Metabolic stress for arm growth.'}
+    ]
+  }
+};
+
+// ══════════════════════════ NAVIGATION ══════════════════════════
+
+function nav(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='tracker'){renderTracker();}
+  if(id==='pullups'){renderPullupCounter();}
+}
+
+// ══════════════════════════ DAY SELECTION ══════════════════════════
+
+let activeDay = 'mon';
+
+function showDay(day, el) {
+  document.querySelectorAll('.dc:not(.rest)').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  activeDay = day;
+  renderWorkout(day);
+}
+
+// ══════════════════════════ WORKOUT RENDERER ══════════════════════════
+
+const PROG_BADGE = {
+  d:'<span class="ptag d">DOUBLE</span>',
+  r:'<span class="ptag r">REP PR</span>',
+  x:'<span class="ptag x">DENSITY</span>'
+};
+
+let activeCueEl = null;
+let restInterval = null;
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function parseRest(text) {
+  if (!text) return 60;
+  if (text.includes('min')) return parseInt(text) * 60;
+  return parseInt(text) || 60;
+}
+
+function startRestTimer(sec, timerEl, countEl) {
+  let t = sec;
+  clearInterval(restInterval);
+  if (countEl) countEl.textContent = t + 's';
+  restInterval = setInterval(() => {
+    t--;
+    if (countEl) countEl.textContent = t + 's';
+    if (t <= 0) {
+      clearInterval(restInterval);
+      if (countEl) countEl.textContent = '✓';
+      showToast('Rest done — next set.');
+    }
+  }, 1000);
+}
+
+function renderWorkout(day) {
+  const w = DAYS[day];
+  let html = `
+    <div class="w-head">
+      <div>
+        <div class="w-title">${w.title} <em>${w.sub}</em></div>
+        <div class="w-focus">${w.focus}</div>
+        <div class="w-pills">
+          <div class="pill hi">⏱ ${w.time}</div>
+          <div class="pill">${w.sets} working sets</div>
+          ${w.upgrades.map(u=>`<div class="pill or">↑ ${u}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="callout"><strong>Session focus:</strong> ${w.note}</div>
+  `;
+
+  for (const blk of w.blocks) {
+    if (blk.finisher) {
+      html += `<div class="finisher"><div class="finisher-label">⚡ INTENSITY FINISHER</div><div class="finisher-desc">${blk.finisher}</div></div>`;
+      continue;
+    }
+    html += `<div class="blk">
+      <div class="blk-head"><div></div><div>${blk.label}</div><div>SETS</div><div>REPS</div><div>REST</div><div>METHOD</div></div>`;
+    for (const ex of blk.exs) {
+      const cls = ex.isNew ? 'new-ex' : ex.isMod ? 'mod-ex' : '';
+      html += `<div class="ex-row ${cls}" onclick="toggleCue(this,'${ex.cue.replace(/'/g,"&#39;")}','${ex.rest||''}')">
+        <div class="ex-n">${ex.n}</div>
+        <div><div class="ex-name">${ex.name}${ex.isNew?'<span class="ptag d" style="margin-left:6px;font-size:7px">NEW</span>':ex.isMod?'<span class="ptag x" style="margin-left:6px;font-size:7px">MOD</span>':''}</div><div class="ex-sub">${ex.sub}</div></div>
+        <div class="ex-sets">${ex.sets}</div>
+        <div class="ex-reps">${ex.reps}</div>
+        <div class="ex-rest">${ex.rest}</div>
+        <div>${PROG_BADGE[ex.prog]||''}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div style="margin-top:12px;padding:10px 14px;background:var(--s1);border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:9px;color:var(--dimmer);letter-spacing:1px">TAP ANY EXERCISE ROW TO SEE COACHING CUE + START REST TIMER</div>`;
+
+  document.getElementById('workout-area').innerHTML = html;
+}
+
+function toggleCue(el, cue, restText) {
+  document.querySelectorAll('.inline-cue').forEach(c => c.remove());
+  clearInterval(restInterval);
+
+  if (activeCueEl === el) {
+    activeCueEl = null;
+    return;
+  }
+  activeCueEl = el;
+
+  // Mark streak when you tap an exercise AND when you log
+  markStreak();
+
+  const restSec = parseRest(restText);
+  const showTimer = restSec > 0 && restText && restText !== '—';
+
+  const div = document.createElement('div');
+  div.className = 'inline-cue';
+  div.innerHTML = `
+    <strong>Coaching cue:</strong> ${cue}
+    ${showTimer ? `
+    <div class="rest-timer">
+      ⏱ REST TIMER:
+      <span class="rest-timer-count" id="rest-count">${restSec}s</span>
+    </div>` : ''}
+  `;
+  el.after(div);
+
+  if (showTimer) {
+    startRestTimer(restSec, div, document.getElementById('rest-count'));
+  }
+}
+
+// ══════════════════════════ STREAK SYSTEM ══════════════════════════
+
+const STREAK_KEY = 'apex_streak';
+
+function markStreak() {
+  const today = new Date().toDateString();
+  let d = {};
+  try { d = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}'); } catch {}
+  if (d.last === today) return; // Already marked today
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.last === yesterday.toDateString()) {
+    d.count = (d.count || 0) + 1;
+  } else {
+    d.count = 1;
+  }
+  d.best = Math.max(d.best || 0, d.count);
+  d.last = today;
+  try { localStorage.setItem(STREAK_KEY, JSON.stringify(d)); } catch {}
+  renderStreak();
+}
+
+function renderStreak() {
+  let d = {};
+  try { d = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}'); } catch {}
+  const countEl = document.getElementById('streak-count');
+  const bestEl = document.getElementById('streak-best');
+  if (countEl) countEl.textContent = d.count || 0;
+  if (bestEl) bestEl.textContent = d.best || 0;
+}
+
+// ══════════════════════════ REMINDERS ══════════════════════════
+
+function checkReminders() {
+  const h = new Date().getHours();
+  const day = new Date().getDay();
+  if (h === 10) showToast('💧 Drink water');
+  if (h === 15) showToast('💧 Drink water');
+  if (h === 20) showToast('💧 Drink water');
+  if (h === 18) showToast('🚶 Go for a walk');
+  if (day === 0 && h === 9) showToast('📏 Log your measurements');
+}
+
+// Run reminders check every 60 seconds
+setInterval(checkReminders, 60000);
+
+// ══════════════════════════ PULL-UP COUNTER ══════════════════════════
+
+const PU_KEY = 'apex2_pu';
+
+function getPuData() {
+  try { return JSON.parse(localStorage.getItem(PU_KEY) || '{"total":0,"target":80}'); }
+  catch { return {total:0,target:80}; }
+}
+
+function savePuData(d) { try { localStorage.setItem(PU_KEY, JSON.stringify(d)); } catch {} }
+
+function addPullupReps() {
+  const v = parseInt(document.getElementById('pu-add-input').value);
+  if (isNaN(v) || v < 1) return;
+  const d = getPuData();
+  d.total = (d.total || 0) + v;
+  savePuData(d);
+  document.getElementById('pu-add-input').value = '';
+  renderPullupCounter();
+}
+
+function resetPullupWeek() {
+  const d = getPuData();
+  d.total = 0;
+  savePuData(d);
+  renderPullupCounter();
+}
+
+function renderPullupCounter() {
+  const d = getPuData();
+  const total = d.total || 0;
+  const target = 80;
+  const pct = Math.min(100, Math.round((total / target) * 100));
+  document.getElementById('pu-total').innerHTML = `${total} <span>/ ${target} reps</span>`;
+  document.getElementById('pu-status').textContent = `${pct}% of weekly target`;
+  document.getElementById('pu-bar').style.width = pct + '%';
+  if (total >= 100) document.getElementById('pu-bar').style.background = 'var(--gold)';
+  else if (total >= 80) document.getElementById('pu-bar').style.background = 'var(--lime)';
+  else if (total >= 60) document.getElementById('pu-bar').style.background = 'var(--blue)';
+  else document.getElementById('pu-bar').style.background = 'var(--orange)';
+}
+
+// ══════════════════════════ TRACKER ══════════════════════════
+
+const TK_KEY = 'apex2_tracker';
+
+function getTkData() { try { return JSON.parse(localStorage.getItem(TK_KEY) || '{}'); } catch { return {}; } }
+function saveTkData(d) { try { localStorage.setItem(TK_KEY, JSON.stringify(d)); } catch {} }
+
+function log(key) {
+  const v = parseFloat(document.getElementById('i-' + key).value);
+  if (isNaN(v)) return;
+  const data = getTkData();
+  if (!data[key]) data[key] = [];
+  const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
+  data[key].push({d: today, v});
+  saveTkData(data);
+  document.getElementById('i-' + key).value = '';
+  // Also mark streak when logging anything
+  markStreak();
+  renderTracker();
+  showToast('Logged ✓');
+}
+
+function renderTracker() {
+  const data = getTkData();
+  const keys = ['weight','waist','press','lateral','pullup','shoulder','walk','water'];
+  const waistDown = ['waist'];
+
+  for (const key of keys) {
+    const el = document.getElementById('l-' + key);
+    if (!el) continue;
+    const entries = data[key] || [];
+    if (!entries.length) { el.innerHTML = `<div class="empty">No entries yet</div>`; continue; }
+    const pb = entries.reduce((m, x) => waistDown.includes(key) ? Math.min(m, x.v) : Math.max(m, x.v), entries[0].v);
+    let html = '';
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const e = entries[i], prev = i > 0 ? entries[i-1].v : null;
+      let delta = '';
+      if (prev !== null) {
+        const diff = (e.v - prev);
+        const upGood = !waistDown.includes(key);
+        const isUp = diff > 0;
+        delta = `<span class="delta ${isUp ? 'up' : 'dn'}">${isUp ? '+' : ''}${diff.toFixed(1)}</span>`;
+      }
+      const isPB = entries.length > 1 && e.v === pb;
+      html += `<div class="log-row">
+        <div><span class="log-d">${e.d}</span>${isPB ? '<span class="pb-tag">PB</span>' : ''}</div>
+        <div style="display:flex;gap:6px;align-items:center">${delta}<span class="log-v">${e.v}</span></div>
+      </div>`;
+    }
+    el.innerHTML = html;
+  }
+
+  // ratio
+  const shoulders = data.shoulder || [];
+  const waists = data.waist || [];
+  if (shoulders.length && waists.length) {
+    const sh = shoulders[shoulders.length-1].v;
+    const wa = waists[waists.length-1].v;
+    const ratio = (sh / wa);
+    const pct = Math.min(100, Math.round((ratio / 1.6) * 100));
+    const col = ratio >= 1.6 ? 'var(--lime)' : ratio >= 1.5 ? 'var(--gold)' : 'var(--orange)';
+    document.getElementById('ratio-num').textContent = ratio.toFixed(2) + '×';
+    document.getElementById('ratio-num').style.color = col;
+    document.getElementById('ratio-bar').style.width = pct + '%';
+    document.getElementById('ratio-bar').style.background = col;
+    const gap = (1.6 * wa - sh).toFixed(1);
+    document.getElementById('ratio-sub').textContent = ratio >= 1.6
+      ? '✓ Greek ideal achieved'
+      : `Need +${gap}in of shoulder width to hit 1.60×`;
+    document.getElementById('ratio-gap').textContent = ratio >= 1.6
+      ? "Target achieved — you've made it"
+      : `Currently at ${ratio.toFixed(2)}× — ${pct}% of the way to ideal`;
+  }
+}
+
+// ══════════════════════════ PWA INSTALL ══════════════════════════
+
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Only show if not dismissed before
+  if (!localStorage.getItem('apex_install_dismissed')) {
+    document.getElementById('install-banner').classList.add('show');
+  }
+});
+
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+function dismissInstall() {
+  document.getElementById('install-banner').classList.remove('show');
+  try { localStorage.setItem('apex_install_dismissed', '1'); } catch {}
+}
+
+// ══════════════════════════ SERVICE WORKER ══════════════════════════
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// ══════════════════════════ INIT ══════════════════════════
+renderWorkout('mon');
+renderPullupCounter();
+renderStreak();
+checkReminders();
+</script>
+
+</body>
+</html>
